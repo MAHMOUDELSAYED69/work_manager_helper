@@ -6,24 +6,25 @@ import 'package:workmanager/workmanager.dart';
 
 import 'api.dart';
 
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    final apiService = ApiServiceImpl();
+    try {
+      final data = await apiService.fetchData();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('fetchedData', json.encode(data));
+      await prefs.setString('fetchTime', DateTime.now().toString());
+
+      log("Fetched data: $data");
+    } catch (e) {
+      log("Error fetching data: $e");
+    }
+    return Future.value(true);
+  });
+}
+
 class WorkManagerHelper {
-  static void callbackDispatcher() {
-    Workmanager().executeTask((task, inputData) async {
-      final apiService = ApiServiceImpl();
-      try {
-        final data = await apiService.fetchData();
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('fetchedData', json.encode(data));
-        await prefs.setString('fetchTime', DateTime.now().toString());
-
-        log("Fetched data: $data");
-      } catch (e) {
-        log("Error fetching data: $e");
-      }
-      return Future.value(true);
-    });
-  }
 
   static void initializeWorkManager() {
     Workmanager().initialize(
